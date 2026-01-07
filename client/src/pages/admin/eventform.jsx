@@ -5,24 +5,32 @@ import React from "react";
 
 function eventform() {
     return (
-        <div className="pt-20 lg:pt-8 bg-[color:var(--primary-color)]">
+        <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8">
             <AdminNavBar />
-            <center className = "p-6">
-                <div className="flex flex-col md:h-[calc(88vh)] md:w-[90%] md:flex-row justify-center bg-[color:var(--primary-color)]">
-                    <div className="flex-1 mx-6 mb-6 bg-[color:var(--primary-color)]">
+            <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 items-start">
+                {/* Left Side: Illustration/Image */}
+                <div className="hidden lg:block w-1/2 sticky top-24">
+                    <div className="relative group">
+                        <div className="absolute -inset-4 bg-indigo-100 rounded-[3rem] blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
                         <Image
                             src="/img/eventsFormImg.jpg"
-                            alt="Event Image"
-                            width={500}
-                            height={500}
-                            className="w-full h-full object-contain md:object-cover rounded-lg shadow-lg"
+                            alt="Event Creation"
+                            width={600}
+                            height={800}
+                            className="relative rounded-[2.5rem] shadow-2xl object-cover"
                         />
-                    </div>
-                    <div className="flex-1 m-6 md:m-0 md:mr-6 md:mb-6">
-                        <CreateEventForm />
+                        <div className="absolute bottom-10 left-10 p-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl text-white">
+                            <h3 className="text-xl font-bold">Plan your event</h3>
+                            <p className="text-sm opacity-80">Make it memorable for everyone.</p>
+                        </div>
                     </div>
                 </div>
-            </center>
+
+                {/* Right Side: Form */}
+                <div className="w-full lg:w-1/2">
+                    <CreateEventForm />
+                </div>
+            </div>
         </div>
     );
 }

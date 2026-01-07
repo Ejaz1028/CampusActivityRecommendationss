@@ -1,36 +1,46 @@
 import AdminNavBar from "@/components/AdminNavBar";
 import CreateEventForm from "@/components/CreateEventForm";
 import Image from "next/image";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import AdminSidebar from "@/components/AdminSidebar";
 
 function eventform() {
+    const [activeTab, setActiveTab] = useState("events"); // Default to events for this page
+
     return (
-        <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8">
+        <div className="min-h-screen bg-gray-50">
             <AdminNavBar />
-            <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 items-start">
-                {/* Left Side: Illustration/Image */}
-                <div className="hidden lg:block w-1/2 sticky top-24">
-                    <div className="relative group">
-                        <div className="absolute -inset-4 bg-indigo-100 rounded-[3rem] blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
-                        <Image
-                            src="/img/eventsFormImg.jpg"
-                            alt="Event Creation"
-                            width={600}
-                            height={800}
-                            className="relative rounded-[2.5rem] shadow-2xl object-cover"
-                        />
-                        <div className="absolute bottom-10 left-10 p-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl text-white">
-                            <h3 className="text-xl font-bold">Plan your event</h3>
-                            <p className="text-sm opacity-80">Make it memorable for everyone.</p>
+            <AdminSidebar activeTab={activeTab} setActiveTab={(tab) => {
+                if (tab !== "events") {
+                    window.location.href = "/admin/dashboard?tab=" + tab;
+                }
+            }} />
+
+            <main className="lg:pl-64 pt-16">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 items-start">
+                    {/* Form Section */}
+                    <div className="w-full">
+                        <div className="flex flex-col lg:flex-row gap-12 items-start">
+                            <div className="hidden lg:block w-1/3 sticky top-24">
+                                <div className="relative group">
+                                    <div className="absolute -inset-4 bg-indigo-100 rounded-[3rem] blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
+                                    <Image
+                                        src="/img/eventsFormImg.jpg"
+                                        alt="Event Creation"
+                                        width={600}
+                                        height={800}
+                                        className="relative rounded-[2.5rem] shadow-2xl object-cover"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="w-full lg:w-2/3">
+                                <CreateEventForm />
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Right Side: Form */}
-                <div className="w-full lg:w-1/2">
-                    <CreateEventForm />
-                </div>
-            </div>
+            </main>
         </div>
     );
 }

@@ -51,7 +51,7 @@ export default function NavBar() {
                         className="rounded-lg shadow-sm"
                     />
                     <h1 className="text-xl font-extrabold tracking-tight text-gray-900">
-                        In<span className="text-indigo-600">VIT</span>e
+                        LO<span className="text-indigo-600">OP</span>
                     </h1>
                 </div>
 

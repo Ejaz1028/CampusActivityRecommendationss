@@ -103,10 +103,55 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+const publishRabbitMQ = async (req, res) => {
+    const { message } = req.body;
+    try {
+        const { getChannel } = require("../utils/rabbitmqClient");
+        const channel = await getChannel();
+        if (channel) {
+            channel.publish('event_exchange', '', Buffer.from(JSON.stringify({ message, source: 'Admin Console' })));
+            console.log(`✅ Admin published test message:`, message);
+            res.status(200).send({ msg: "Message published" });
+        } else {
+            res.status(500).send({ msg: "RabbitMQ channel not available" });
+        }
+    } catch (error) {
+        console.error("RabbitMQ Publish Error:", error);
+        res.status(500).send({ msg: "Error publishing message", error });
+    }
+};
+
+// Simple SSE stream for admin logs
+const adminStream = async (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const sendLog = (message) => {
+        res.write(`data: ${JSON.stringify({ message })}\n\n`);
+    };
+
+    // For demonstration, we'll just send a hearbeat or simulate a subscriber
+    const interval = setInterval(() => {
+        // Heartbeat
+    }, 30000);
+
+    // In a real implementation, you'd hook into the actual RabbitMQ consumer
+    // For this test, we'll just acknowledge the connection
+    sendLog("Connected to System Log Stream");
+
+    req.on('close', () => {
+        clearInterval(interval);
+    });
+};
+
 module.exports = {
     setAdmin,
     adminAuth,
     adminDetails,
     getAdminStats,
-    getAllUsers
+    getAllUsers,
+    publishRabbitMQ,
+    adminStream
 };

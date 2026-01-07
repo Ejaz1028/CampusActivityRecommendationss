@@ -1,5 +1,5 @@
-import AdminNavBar from "@/components/AdminNavBar";
 import AdminSidebar from "@/components/AdminSidebar";
+import RabbitMQTest from "@/components/RabbitMQTest";
 import Dashboard_Filter from "@/components/Dashboard_Filter";
 import Popup_Filter from "@/components/Popup_Filter";
 import { getAdminToken } from "@/utils/getAdminToken";
@@ -207,6 +207,13 @@ function AdminDashboard() {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+                        )}
+
+                        {/* Test Tab */}
+                        {activeTab === "test" && (
+                            <div className="p-6">
+                                <RabbitMQTest />
                             </div>
                         )}
                     </div>

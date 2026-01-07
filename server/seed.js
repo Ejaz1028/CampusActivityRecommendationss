@@ -82,6 +82,7 @@ const seedData = async () => {
                 username: "alice_doe",
                 email: "user@gmail.com",
                 contactNumber: "1234567890",
+                password: "password123",
                 registeredEvents: [events[0], events[1]]
             },
             {
@@ -90,6 +91,7 @@ const seedData = async () => {
                 username: "bob_smith",
                 email: "bob@example.com",
                 contactNumber: "0987654321",
+                password: "password123",
                 registeredEvents: [events[1]]
             }
         ]);

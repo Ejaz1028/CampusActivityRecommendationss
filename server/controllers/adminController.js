@@ -103,13 +103,43 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+const EventEmitter = require('events');
+const adminEventEmitter = new EventEmitter();
+
+// Initialize RabbitMQ Consumer for Admin Console
+const initAdminSubscriber = async () => {
+    try {
+        const { getChannel } = require("../utils/rabbitmqClient");
+        const channel = await getChannel();
+        if (!channel) return;
+
+        // Create an exclusive temporary queue for this admin session
+        const q = await channel.assertQueue('', { exclusive: true });
+        await channel.bindQueue(q.queue, 'event_exchange', '');
+
+        console.log(`📡 Admin Subscriber listening on queue: ${q.queue}`);
+
+        channel.consume(q.queue, (msg) => {
+            if (msg.content) {
+                const content = msg.content.toString();
+                adminEventEmitter.emit('message', content);
+            }
+        }, { noAck: true });
+    } catch (error) {
+        console.error("Failed to init Admin Subscriber:", error);
+    }
+};
+
+// Start subscriber
+initAdminSubscriber();
+
 const publishRabbitMQ = async (req, res) => {
     const { message } = req.body;
     try {
         const { getChannel } = require("../utils/rabbitmqClient");
         const channel = await getChannel();
         if (channel) {
-            channel.publish('event_exchange', '', Buffer.from(JSON.stringify({ message, source: 'Admin Console' })));
+            channel.publish('event_exchange', '', Buffer.from(message));
             console.log(`✅ Admin published test message:`, message);
             res.status(200).send({ msg: "Message published" });
         } else {
@@ -121,7 +151,7 @@ const publishRabbitMQ = async (req, res) => {
     }
 };
 
-// Simple SSE stream for admin logs
+// Real-time SSE stream for admin logs (hooked into RabbitMQ)
 const adminStream = async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -132,17 +162,15 @@ const adminStream = async (req, res) => {
         res.write(`data: ${JSON.stringify({ message })}\n\n`);
     };
 
-    // For demonstration, we'll just send a hearbeat or simulate a subscriber
-    const interval = setInterval(() => {
-        // Heartbeat
-    }, 30000);
+    const messageHandler = (content) => {
+        sendLog(content);
+    };
 
-    // In a real implementation, you'd hook into the actual RabbitMQ consumer
-    // For this test, we'll just acknowledge the connection
+    adminEventEmitter.on('message', messageHandler);
     sendLog("Connected to System Log Stream");
 
     req.on('close', () => {
-        clearInterval(interval);
+        adminEventEmitter.removeListener('message', messageHandler);
     });
 };
 

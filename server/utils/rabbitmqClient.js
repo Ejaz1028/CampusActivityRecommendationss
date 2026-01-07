@@ -8,7 +8,17 @@ const RETRY_INTERVAL = 5000; // 5 seconds
 async function connectRabbitMQ() {
     try {
         console.log('🔄 Attempting to connect to RabbitMQ...');
-        connection = await amqp.connect('amqp://guest:guest@127.0.0.1:5672?heartbeat=60');
+        const amqp = require('amqplib');
+
+        const connection = await amqp.connect({
+            protocol: 'amqp',
+            hostname: 'localhost',
+            port: 5672,
+            username: 'guest',
+            password: 'guest',
+            frameMax: 8192   // 🔴 REQUIRED FIX
+        });
+
         channel = await connection.createChannel();
         console.log('✅ Connected to RabbitMQ');
 

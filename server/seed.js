@@ -83,6 +83,8 @@ const seedData = async () => {
                 email: "user@gmail.com",
                 contactNumber: "1234567890",
                 password: "password123",
+                role: "user",
+                isVerified: true,
                 registeredEvents: [events[0], events[1]]
             },
             {
@@ -92,7 +94,34 @@ const seedData = async () => {
                 email: "bob@example.com",
                 contactNumber: "0987654321",
                 password: "password123",
+                role: "user",
+                isVerified: true,
                 registeredEvents: [events[1]]
+            }
+        ]);
+
+        // 5. Seed Publishers
+        console.log("📢 Seeding Publishers...");
+        await User.insertMany([
+            {
+                user_token: "pub_tok_1",
+                reg_number: "PUB001",
+                username: "Music Society",
+                email: "music@campus.com",
+                contactNumber: "1122334455",
+                password: "password123",
+                role: "publisher",
+                isVerified: true,
+            },
+            {
+                user_token: "pub_tok_2",
+                reg_number: "PUB002",
+                username: "Sports Club",
+                email: "sports@campus.com",
+                contactNumber: "5544332211",
+                password: "password123",
+                role: "publisher",
+                isVerified: false, // One unverified publisher for testing
             }
         ]);
 

@@ -15,7 +15,7 @@ async function sendCheckInMail(data) {
 }
 
 const postEvent = async (req, res) => {
-    const { name, venue, date, time, description, price, profile, cover, organizer, admin_id } = req.body;
+    const { name, venue, date, time, description, price, profile, cover, organizer, admin_id, publisher_id } = req.body;
 
     const payload = { email: name };
     const token = jwt.sign(payload, JWT_SECRET);
@@ -31,6 +31,7 @@ const postEvent = async (req, res) => {
         profile,
         cover,
         organizer,
+        publisher_id,
     });
 
     try {
@@ -38,18 +39,18 @@ const postEvent = async (req, res) => {
         console.log("Saved::New Event::created.");
 
         // Publish event to RabbitMQ exchange
-        const channel = await getChannel();
-        if (channel) {
-            setTimeout(() => {
-            for (let i = 0; i < 10; i++) {
-                setTimeout(() => {
-                    channel.publish('event_exchange', '', Buffer.from(JSON.stringify(newEvent)));
-                    console.log(`✅ Event ${i + 1} published to exchange:`, newEvent);
-                }, i * 5000); // 5s delay between each publish
-            }
-            }, 5000);
-        } else {
-            console.error("❌ RabbitMQ channel is not available.");
+        const { publishToEvent, publishToPublisher } = require("../utils/rabbitmqClient");
+        await publishToEvent(token, {
+            type: "EVENT_CREATED",
+            event: newEvent
+        });
+
+        if (publisher_id) {
+            await publishToPublisher(publisher_id, {
+                type: "NEW_EVENT_BY_FOLLOWED_PUBLISHER",
+                event: newEvent,
+                message: `Publisher ${organizer} has posted a new event: ${name}`
+            });
         }
 
         // Update Admin's eventCreated array
@@ -68,6 +69,7 @@ const postEvent = async (req, res) => {
                         profile: profile || "https://i.etsystatic.com/15907303/r/il/c8acad/1940223106/il_794xN.1940223106_9tfg.jpg",
                         cover: cover || "https://eventplanning24x7.files.wordpress.com/2018/04/events.png",
                         organizer,
+                        publisher_id,
                     },
                 },
             }
@@ -111,7 +113,17 @@ const sseHandler = async (req, res) => {
 const particularEvent = async (req, res) => {
     const { event_id } = req.body;
     try {
-        const event = await Event.findOne({ event_id });
+        const event = await Event.findOne({ event_id }).lean();
+        if (!event) return res.status(404).send({ msg: "Event not found" });
+
+        // Fetch publisher details if publisher_id exists
+        if (event.publisher_id) {
+            const publisher = await User.findOne({ user_token: event.publisher_id }, { username: 1, isVerified: 1 });
+            if (publisher) {
+                event.publisher_details = publisher;
+            }
+        }
+
         res.status(200).send(event);
     } catch (err) {
         console.error("Error fetching event:", err);

@@ -23,6 +23,8 @@ function AdminDashboard() {
         totalRevenue: 0,
         totalRegistrations: 0
     });
+    const [allPublishers, setAllPublishers] = useState([]);
+    const [pendingPublishers, setPendingPublishers] = useState([]);
 
     const [popupFilterOpen, setPopupFilterOpen] = useState(false);
     const [filterOptions, setFilterOptions] = useState({
@@ -60,6 +62,20 @@ function AdminDashboard() {
                 const data = await usersRes.json();
                 setAllUsers(data);
             }
+
+            // 4. Fetch Publishers
+            const publishersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/publishers`);
+            if (publishersRes.ok) {
+                const data = await publishersRes.json();
+                setAllPublishers(data);
+            }
+
+            // 5. Fetch Pending Publishers
+            const pendingRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/pending-publishers`);
+            if (pendingRes.ok) {
+                const data = await pendingRes.json();
+                setPendingPublishers(data);
+            }
         } catch (error) {
             console.error("Fetch Dashboard Data Error:", error);
         }
@@ -82,6 +98,38 @@ function AdminDashboard() {
         });
         setFilteredEvents(newFilteredEvents);
     }, [allEvents, filterOptions]);
+
+    const handleVerifyPublisher = async (userId, isVerified) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/verify-publisher`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, isVerified }),
+            });
+            if (response.ok) {
+                alert(`Publisher ${isVerified ? "verified" : "rejected"}`);
+                fetchDashboardData();
+            }
+        } catch (error) {
+            console.error("Verify Publisher Error:", error);
+        }
+    };
+
+    const handleUpdateRole = async (userId, role) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-role`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, role }),
+            });
+            if (response.ok) {
+                alert(`User role updated to ${role}`);
+                fetchDashboardData();
+            }
+        } catch (error) {
+            console.error("Update Role Error:", error);
+        }
+    };
 
     const handleDeleteEvent = async (event_id) => {
         if (!window.confirm("Are you sure you want to delete this event?")) return;
@@ -120,6 +168,9 @@ function AdminDashboard() {
                                 {activeTab === "overview" && "Dashboard Overview"}
                                 {activeTab === "events" && "Manage Events"}
                                 {activeTab === "users" && "User Directory"}
+                                {activeTab === "publishers" && "Manage Publishers"}
+                                {activeTab === "verification" && "Verification Requests"}
+                                {activeTab === "test" && "RabbitMQ System Test"}
                             </h1>
                             <p className="text-gray-500 text-sm mt-1">
                                 Welcome back! Here's what's happening today.
@@ -207,8 +258,112 @@ function AdminDashboard() {
                                                 <td className="px-6 py-4 text-sm text-gray-600 font-medium">{user.reg_number}</td>
                                                 <td className="px-6 py-4 text-sm text-gray-600">{user.contactNumber}</td>
                                                 <td className="px-6 py-4 text-sm text-gray-900 font-bold text-right">{user.registeredEvents?.length || 0}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    {user.role !== "publisher" ? (
+                                                        <button
+                                                            onClick={() => handleUpdateRole(user._id, "publisher")}
+                                                            className="px-4 py-2 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                        >
+                                                            Make Publisher
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">Publisher</span>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {/* Publishers Tab */}
+                        {activeTab === "publishers" && (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-gray-50 border-b border-gray-200">
+                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Publisher</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {allPublishers.map((pub) => (
+                                            <tr key={pub.user_token} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                                                            {pub.username?.[0]?.toUpperCase() || "P"}
+                                                        </div>
+                                                        <div className="text-sm font-semibold text-gray-900">{pub.username}</div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-600 font-medium">{pub.email}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <button
+                                                        onClick={() => handleUpdateRole(pub._id, "user")}
+                                                        className="text-red-600 hover:text-red-800 text-sm font-bold"
+                                                    >
+                                                        Remove Role
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {allPublishers.length === 0 && (
+                                            <tr>
+                                                <td colSpan="3" className="px-6 py-12 text-center text-gray-400 italic">No publishers assigned yet.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {/* Verification Tab */}
+                        {activeTab === "verification" && (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-gray-50 border-b border-gray-200">
+                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Applicant</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {pendingPublishers.map((pub) => (
+                                            <tr key={pub.user_token} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-sm">
+                                                            {pub.username?.[0]?.toUpperCase() || "A"}
+                                                        </div>
+                                                        <div className="text-sm font-semibold text-gray-900">{pub.username}</div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-600 font-medium">{pub.email}</td>
+                                                <td className="px-6 py-4 text-right flex gap-2 justify-end">
+                                                    <button
+                                                        onClick={() => handleVerifyPublisher(pub._id, true)}
+                                                        className="px-4 py-2 bg-green-50 text-green-700 text-xs font-bold rounded-lg hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleVerifyPublisher(pub._id, false)}
+                                                        className="px-4 py-2 bg-red-50 text-red-700 text-xs font-bold rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {pendingPublishers.length === 0 && (
+                                            <tr>
+                                                <td colSpan="3" className="px-6 py-12 text-center text-gray-400 italic">No pending verification requests.</td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>

@@ -28,6 +28,8 @@ const signIn = async (req, res) => {
         return res.status(200).send({
             msg: "Sign-In successful!",
             user_id: user.user_token,
+            role: user.role,
+            isVerified: user.isVerified
         });
     } catch (error) {
         console.error("SignIn Error:", error);
@@ -37,7 +39,7 @@ const signIn = async (req, res) => {
 
 // route - http://localhost:5000/user/signup
 const signUp = async (req, res) => {
-    const { email, username, password, contactNumber, regNumber } = req.body;
+    const { email, username, password, contactNumber, regNumber, role } = req.body;
 
     try {
         const existingUser = await User.findOne({ email });
@@ -57,6 +59,8 @@ const signUp = async (req, res) => {
             email: email,
             contactNumber: contactNumber,
             password: password,
+            role: role || "user",
+            isVerified: role === "publisher" ? false : true, // Users are verified by default, publishers need approval
         });
 
         await newUser.save();

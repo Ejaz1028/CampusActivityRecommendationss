@@ -31,6 +31,16 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        role: {
+            type: String,
+            enum: ["user", "admin", "publisher"],
+            default: "user",
+        },
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
+        followedPublishers: [String],
         registeredEvents: [eventSchema],
     },
     { timestamps: true }

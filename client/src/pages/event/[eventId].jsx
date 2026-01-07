@@ -4,6 +4,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import VerifiedBadge from "@/components/VerifiedBadge";
 
 function EventPage() {
     const router = useRouter();
@@ -123,12 +124,30 @@ function EventPage() {
                                             </span>{" "}
                                             {eventData.venue}
                                         </div>
-                                        <div className="text-md text-gray-800 mr-4">
+                                        <div className="text-md text-gray-800 mr-4 flex items-center gap-2">
                                             <span className="font-bold">
                                                 Organizer:
                                             </span>{" "}
                                             {eventData.organizer}
                                         </div>
+                                        {eventData.publisher_details && (
+                                            <div className="text-md text-gray-800 mr-4 flex items-center gap-2">
+                                                <span className="font-bold">
+                                                    Publisher:
+                                                </span>{" "}
+                                                <span className="text-indigo-600 font-medium">{eventData.publisher_details.username}</span>
+                                                <VerifiedBadge isVerified={eventData.publisher_details.isVerified} />
+                                                <button
+                                                    onClick={handleFollowToggle}
+                                                    className={`ml-2 px-3 py-1 rounded-lg text-xs font-bold transition-all ${isFollowing
+                                                            ? "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                                            : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                                                        }`}
+                                                >
+                                                    {isFollowing ? "Unfollow" : "Follow"}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="text-left lg:text-right mt-4 lg:mt-0">
@@ -138,11 +157,10 @@ function EventPage() {
                                                 `/event/${eventId}/payment`
                                             )
                                         }
-                                        className={`px-6 py-2 ${
-                                            isUserRegistered
-                                                ? "bg-gray-700 hover:bg-gray-800"
-                                                : "bg-[color:var(--darker-secondary-color)] hover:bg-[color:var(--secondary-color)]"
-                                        } text-white rounded focus:outline-none`}
+                                        className={`px-6 py-2 ${isUserRegistered
+                                            ? "bg-gray-700 hover:bg-gray-800"
+                                            : "bg-[color:var(--darker-secondary-color)] hover:bg-[color:var(--secondary-color)]"
+                                            } text-white rounded focus:outline-none`}
                                         disabled={isUserRegistered}
                                     >
                                         {isUserRegistered
@@ -227,11 +245,10 @@ function EventPage() {
                                                             `/event/${eventId}/payment`
                                                         )
                                                     }
-                                                    className={`px-3 py-2 ${
-                                                        isUserRegistered
-                                                            ? "bg-gray-700 hover:bg-gray-800"
-                                                            : "bg-[color:var(--darker-secondary-color)] hover:bg-[color:var(--secondary-color)]"
-                                                    } text-white rounded focus:outline-none`}
+                                                    className={`px-3 py-2 ${isUserRegistered
+                                                        ? "bg-gray-700 hover:bg-gray-800"
+                                                        : "bg-[color:var(--darker-secondary-color)] hover:bg-[color:var(--secondary-color)]"
+                                                        } text-white rounded focus:outline-none`}
                                                     disabled={isUserRegistered}
                                                 >
                                                     {isUserRegistered

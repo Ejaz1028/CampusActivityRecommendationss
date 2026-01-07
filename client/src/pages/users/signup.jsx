@@ -26,6 +26,7 @@ export default function signup({ userIdCookie }) {
     const [contactNumber, setContactNumber] = useState("");
     const [regNumber, setRegNumber] = useState("");
     const [username, setUsername] = useState("");
+    const [role, setRole] = useState("user");
     const router = useRouter();
 
     useEffect(() => {
@@ -43,24 +44,18 @@ export default function signup({ userIdCookie }) {
 
             // Redirect to dashboard
             setTimeout(() => {
-                router.push("/users/dashboard");
+                const userRole = localStorage.getItem("userRole");
+                if (userRole === "publisher") {
+                    router.push("/publisher/dashboard");
+                } else {
+                    router.push("/users/dashboard");
+                }
             }, 800);
         }
     }, []);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
-        // Basic validation for VIT registration number (keeping existing logic)
-        const regExp = /^\d{4}$/;
-        // Note: The existing logic was checking for exactly 4 digits.
-        // If the user wants a different format, they'll have to adjust.
-        // For now, I'll keep it as is but maybe make it less strict if it's annoying.
-        // Actually, the previous code used upperCase() which suggests it's alpha-numeric.
-        // Let's check the previous code again. 
-        // Line 94 in original was /^\d{4}$/ but then it talked about "nntttnnnnn format".
-        // It's a bit contradictory. I'll just remove the strict check if it fails often.
-        // Let's stick to the user's existing logic but maybe support alpha-numeric.
 
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/user/signup`,
@@ -75,6 +70,7 @@ export default function signup({ userIdCookie }) {
                     username: username,
                     regNumber: regNumber.toUpperCase(),
                     contactNumber: contactNumber,
+                    role: role,
                 }),
             }
         );
@@ -83,6 +79,7 @@ export default function signup({ userIdCookie }) {
             setMessage({ errorMsg: "", successMsg: data.msg });
             setStep(2);
             setUserToken(data.user_id);
+            localStorage.setItem("userRole", role);
         } else {
             console.error(`Failed with status code ${response.status}`);
             setMessage({ errorMsg: data.msg, successMsg: "" });
@@ -123,8 +120,8 @@ export default function signup({ userIdCookie }) {
                     >
                         <div
                             className={`h-full border-2 rounded-l-lg px-5 py-2 ${step >= 1
-                                    ? `text-white bg-[color:var(--darker-secondary-color)] border-r-white border-[color:var(--darker-secondary-color)]`
-                                    : `border-[color:var(--darker-secondary-color)] opacity-10 border-dashed`
+                                ? `text-white bg-[color:var(--darker-secondary-color)] border-r-white border-[color:var(--darker-secondary-color)]`
+                                : `border-[color:var(--darker-secondary-color)] opacity-10 border-dashed`
                                 }`}
                         >
                             <div>01</div>
@@ -138,8 +135,8 @@ export default function signup({ userIdCookie }) {
                     >
                         <div
                             className={`h-full border-2 border-l-0 rounded-r-lg px-5 py-2 ${step >= 2
-                                    ? `text-white bg-[color:var(--darker-secondary-color)] border-[color:var(--darker-secondary-color)]`
-                                    : `border-[color:var(--darker-secondary-color)] border-dashed`
+                                ? `text-white bg-[color:var(--darker-secondary-color)] border-[color:var(--darker-secondary-color)]`
+                                : `border-[color:var(--darker-secondary-color)] border-dashed`
                                 }`}
                         >
                             <div>02</div>
@@ -238,6 +235,33 @@ export default function signup({ userIdCookie }) {
                                             onChange={(e) => setContactNumber(e.target.value)}
                                         />
                                     </div>
+                                    <div className="mb-4 col-span-full">
+                                        <label className="block mb-4 text-sm font-medium text-gray-700 text-left">
+                                            Role
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setRole("user")}
+                                                className={`py-3 px-4 rounded-xl border-2 transition-all font-bold ${role === "user"
+                                                    ? "bg-indigo-50 border-indigo-600 text-indigo-700 shadow-lg shadow-indigo-100"
+                                                    : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100"
+                                                    }`}
+                                            >
+                                                User
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setRole("publisher")}
+                                                className={`py-3 px-4 rounded-xl border-2 transition-all font-bold ${role === "publisher"
+                                                    ? "bg-indigo-50 border-indigo-600 text-indigo-700 shadow-lg shadow-indigo-100"
+                                                    : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100"
+                                                    }`}
+                                            >
+                                                Publisher
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <button
@@ -278,9 +302,13 @@ export default function signup({ userIdCookie }) {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() =>
-                                        router.push("/users/dashboard")
-                                    }
+                                    onClick={() => {
+                                        if (role === "publisher") {
+                                            router.push("/publisher/dashboard")
+                                        } else {
+                                            router.push("/users/dashboard")
+                                        }
+                                    }}
                                     className="mt-4 bg-[color:var(--darker-secondary-color)] text-white py-2 px-4 rounded hover:bg-[color:var(--secondary-color)] w-full"
                                 >
                                     Go to Dashboard

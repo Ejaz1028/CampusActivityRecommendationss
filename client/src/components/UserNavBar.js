@@ -1,4 +1,5 @@
 import UserDropdown from "@/components/UserDropdown";
+import NotificationCenter from "@/components/NotificationCenter";
 import { getUserToken } from "@/utils/getUserToken";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -90,6 +91,9 @@ export default function NavBar() {
                                 className="mr-4 cursor-pointer"
                             >
                                 <a>About us</a>
+                            </li>
+                            <li className="mr-4">
+                                <NotificationCenter />
                             </li>
                             <UserDropdown userData={userData} />
                         </ul>

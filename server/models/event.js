@@ -37,6 +37,9 @@ const eventSchema = new mongoose.Schema(
         organizer: {
             type: String,
         },
+        publisher_id: {
+            type: String,
+        },
         participants: [],
     },
     { timestamps: true }

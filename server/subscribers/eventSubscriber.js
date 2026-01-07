@@ -30,12 +30,12 @@ async function setupRabbitMQ() {
         }
 
         // Ensure the exchange exists
-        await channel.assertExchange('event_exchange', 'fanout', { durable: true });
+        await channel.assertExchange('campus_event_exchange', 'topic', { durable: true });
 
         // Create a named, durable queue and bind it to the exchange
         const queueName = 'event_notifications_queue';
         await channel.assertQueue(queueName, { durable: true });
-        await channel.bindQueue(queueName, 'event_exchange', '');
+        await channel.bindQueue(queueName, 'campus_event_exchange', '');
 
         console.log("✅ RabbitMQ subscriber setup successful.");
 

@@ -115,7 +115,7 @@ const initAdminSubscriber = async () => {
 
         // Create an exclusive temporary queue for this admin session
         const q = await channel.assertQueue('', { exclusive: true });
-        await channel.bindQueue(q.queue, 'event_exchange', '');
+        await channel.bindQueue(q.queue, 'campus_event_exchange', '');
 
         console.log(`📡 Admin Subscriber listening on queue: ${q.queue}`);
 
@@ -139,7 +139,7 @@ const publishRabbitMQ = async (req, res) => {
         const { getChannel } = require("../utils/rabbitmqClient");
         const channel = await getChannel();
         if (channel) {
-            channel.publish('event_exchange', '', Buffer.from(message));
+            channel.publish('campus_event_exchange', '', Buffer.from(message));
             console.log(`✅ Admin published test message:`, message);
             res.status(200).send({ msg: "Message published" });
         } else {
@@ -174,12 +174,72 @@ const adminStream = async (req, res) => {
     });
 };
 
+const getAllPublishers = async (req, res) => {
+    try {
+        const publishers = await User.find({ role: "publisher" }, { password: 0 });
+        res.status(200).send(publishers);
+    } catch (error) {
+        console.error("GetAllPublishers Error:", error);
+        res.status(500).send({ msg: "Internal Server Error" });
+    }
+};
+
+const updateUserRole = async (req, res) => {
+    const { userId, role } = req.body;
+    try {
+        const user = await User.findByIdAndUpdate(userId, { role }, { new: true });
+        if (!user) return res.status(404).send({ msg: "User not found" });
+        res.status(200).send({ msg: "Role updated successfully", user });
+    } catch (error) {
+        console.error("UpdateUserRole Error:", error);
+        res.status(500).send({ msg: "Internal Server Error" });
+    }
+};
+
+const getPendingPublishers = async (req, res) => {
+    try {
+        const publishers = await User.find({ role: "publisher", isVerified: false }, { password: 0 });
+        res.status(200).send(publishers);
+    } catch (error) {
+        console.error("GetPendingPublishers Error:", error);
+        res.status(500).send({ msg: "Internal Server Error" });
+    }
+};
+
+const verifyPublisher = async (req, res) => {
+    const { userId, isVerified } = req.body;
+    try {
+        const user = await User.findByIdAndUpdate(userId, { isVerified }, { new: true });
+        if (!user) return res.status(404).send({ msg: "User not found" });
+        res.status(200).send({ msg: `Publisher ${isVerified ? "verified" : "rejected"} successfully`, user });
+    } catch (error) {
+        console.error("VerifyPublisher Error:", error);
+        res.status(500).send({ msg: "Internal Server Error" });
+    }
+};
+
+const getEventsByPublisher = async (req, res) => {
+    const { publisherId } = req.params;
+    try {
+        const events = await Event.find({ publisher_id: publisherId });
+        res.status(200).send(events);
+    } catch (error) {
+        console.error("GetEventsByPublisher Error:", error);
+        res.status(500).send({ msg: "Internal Server Error" });
+    }
+};
+
 module.exports = {
     setAdmin,
     adminAuth,
     adminDetails,
     getAdminStats,
     getAllUsers,
+    getAllPublishers,
+    getPendingPublishers,
+    verifyPublisher,
+    updateUserRole,
+    getEventsByPublisher,
     publishRabbitMQ,
     adminStream
 };

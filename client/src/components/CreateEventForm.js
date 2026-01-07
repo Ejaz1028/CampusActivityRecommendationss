@@ -1,6 +1,6 @@
 import { getAdminToken } from "@/utils/getAdminToken";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HiOutlineCalendar, HiOutlineLocationMarker, HiOutlineUser, HiOutlineCurrencyRupee, HiOutlinePhotograph, HiOutlineDocumentText } from "react-icons/hi";
 
 const CreateEvent = () => {
@@ -16,7 +16,25 @@ const CreateEvent = () => {
         profile: "",
         cover: "",
         description: "",
+        publisher_id: "",
     });
+
+    const [publishers, setPublishers] = useState([]);
+
+    useEffect(() => {
+        const fetchPublishers = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/publishers`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setPublishers(data);
+                }
+            } catch (error) {
+                console.error("Fetch Publishers Error:", error);
+            }
+        };
+        fetchPublishers();
+    }, []);
 
     const handleEventFormSubmit = async (e) => {
         e.preventDefault();
@@ -72,6 +90,28 @@ const CreateEvent = () => {
                         <FormInput label="Organizer" name="organizer" icon={<HiOutlineUser />} value={formData.organizer} onChange={handleChange} required placeholder="e.g. coding Club" />
                         <FormInput label="Date & Time" name="datetime" type="datetime-local" icon={<HiOutlineCalendar />} value={formData.datetime} onChange={handleChange} required />
                         <FormInput label="Price (Rs.)" name="price" type="number" icon={<HiOutlineCurrencyRupee />} value={formData.price} onChange={handleChange} required placeholder="0 for Free" />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                <HiOutlineUser className="text-indigo-500" />
+                                Assign Publisher (Optional)
+                            </label>
+                            <select
+                                name="publisher_id"
+                                value={formData.publisher_id}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+                            >
+                                <option value="">Select a publisher...</option>
+                                {publishers.map((pub) => (
+                                    <option key={pub._id} value={pub.user_token}>
+                                        {pub.username} ({pub.email})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

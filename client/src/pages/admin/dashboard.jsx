@@ -1,3 +1,4 @@
+import AdminNavBar from "@/components/AdminNavBar";
 import AdminSidebar from "@/components/AdminSidebar";
 import RabbitMQTest from "@/components/RabbitMQTest";
 import Dashboard_Filter from "@/components/Dashboard_Filter";
@@ -66,7 +67,10 @@ function AdminDashboard() {
 
     useEffect(() => {
         fetchDashboardData();
-    }, []);
+        if (router.query.tab) {
+            setActiveTab(router.query.tab);
+        }
+    }, [router.query.tab]);
 
     const [filteredEvents, setFilteredEvents] = useState([]);
 

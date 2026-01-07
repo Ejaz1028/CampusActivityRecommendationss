@@ -5,6 +5,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
     const router = useRouter();
 
     const menuItems = [
+        { id: "overview", label: "Overview", icon: <HiOutlineChartBar className="w-5 h-5" /> },
         { id: "events", label: "Manage Events", icon: <HiOutlineCalendar className="w-5 h-5" /> },
         { id: "users", label: "Registered Users", icon: <HiOutlineUsers className="w-5 h-5" /> },
         { id: "test", label: "System Test (RabbitMQ)", icon: <HiOutlineViewGrid className="w-5 h-5" /> },

@@ -1,4 +1,5 @@
 import AdminNavBar from "@/components/AdminNavBar";
+import AdminSidebar from "@/components/AdminSidebar";
 import { getAdminToken } from "@/utils/getAdminToken";
 import Head from "next/head";
 import Image from "next/image";
@@ -7,6 +8,7 @@ import { useEffect, useState } from "react";
 import { HiOutlineCalendar, HiOutlineLocationMarker, HiOutlineUser, HiOutlineCurrencyRupee, HiOutlineTrash, HiOutlineShare, HiOutlineTicket } from "react-icons/hi";
 
 function AdminEventPage() {
+    const [activeTab, setActiveTab] = useState("events");
     const router = useRouter();
     const eventId = router.query.eventId;
     const [eventData, setEventData] = useState(null);
@@ -70,90 +72,97 @@ function AdminEventPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
+        <div className="min-h-screen bg-gray-50">
             <Head>
                 <title>Admin | {eventData.name}</title>
             </Head>
             <AdminNavBar />
+            <AdminSidebar activeTab={activeTab} setActiveTab={(tab) => {
+                if (tab !== "events") {
+                    window.location.href = "/admin/dashboard?tab=" + tab;
+                }
+            }} />
 
-            <div className="pt-24 px-4 max-w-7xl mx-auto">
-                {/* Hero Section */}
-                <div className="relative h-[300px] md:h-[450px] rounded-[2.5rem] overflow-hidden shadow-2xl mb-12">
-                    <Image
-                        src={eventData.cover}
-                        alt={eventData.name}
-                        fill
-                        className="object-cover"
-                        priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end">
-                        <div className="p-8 md:p-12 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
-                            <div className="max-w-3xl">
-                                <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">
-                                    {eventData.name}
-                                </h1>
-                                <div className="flex flex-wrap gap-4 text-white/90 text-sm font-medium">
-                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur rounded-full">
-                                        <HiOutlineCalendar className="w-4 h-4" /> {eventData.date}
-                                    </span>
-                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur rounded-full">
-                                        <HiOutlineLocationMarker className="w-4 h-4" /> {eventData.venue}
-                                    </span>
+            <main className="lg:pl-64 pt-16 pb-12">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto">
+                    {/* Hero Section */}
+                    <div className="relative h-[300px] md:h-[450px] rounded-[2.5rem] overflow-hidden shadow-2xl mb-12">
+                        <Image
+                            src={eventData.cover}
+                            alt={eventData.name}
+                            fill
+                            className="object-cover"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end">
+                            <div className="p-8 md:p-12 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
+                                <div className="max-w-3xl">
+                                    <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">
+                                        {eventData.name}
+                                    </h1>
+                                    <div className="flex flex-wrap gap-4 text-white/90 text-sm font-medium">
+                                        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur rounded-full">
+                                            <HiOutlineCalendar className="w-4 h-4" /> {eventData.date}
+                                        </span>
+                                        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur rounded-full">
+                                            <HiOutlineLocationMarker className="w-4 h-4" /> {eventData.venue}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={share} className="p-4 bg-white/10 backdrop-blur hover:bg-white/20 text-white rounded-2xl transition-all">
+                                        <HiOutlineShare className="w-6 h-6" />
+                                    </button>
+                                    <button onClick={deleteEvent} className="p-4 bg-red-500/80 backdrop-blur hover:bg-red-600 text-white rounded-2xl transition-all">
+                                        <HiOutlineTrash className="w-6 h-6" />
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex gap-3">
-                                <button onClick={share} className="p-4 bg-white/10 backdrop-blur hover:bg-white/20 text-white rounded-2xl transition-all">
-                                    <HiOutlineShare className="w-6 h-6" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Main Content */}
+                        <div className="lg:col-span-2 space-y-8">
+                            <section className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
+                                <h2 className="text-xl font-bold text-gray-900 mb-4">About Event</h2>
+                                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                                    {eventData.description}
+                                </p>
+                            </section>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <DetailCard icon={<HiOutlineUser />} label="Organizer" value={eventData.organizer} />
+                                <DetailCard icon={<HiOutlineCurrencyRupee />} label="Price" value={`Rs. ${eventData.price}`} />
+                            </div>
+                        </div>
+
+                        {/* Sidebar Stats */}
+                        <div className="space-y-6">
+                            <div className="bg-indigo-600 rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-200">
+                                <div className="flex items-center justify-between mb-6">
+                                    <span className="text-indigo-100 font-medium tracking-wide uppercase text-xs">Total Registrations</span>
+                                    <HiOutlineTicket className="w-8 h-8 opacity-40" />
+                                </div>
+                                <div className="text-5xl font-black mb-8">{eventData.participants?.length || 0}</div>
+                                <button
+                                    onClick={() => router.push(`/event/${eventData.event_id}/registration`)}
+                                    className="w-full py-4 bg-white text-indigo-600 font-bold rounded-2xl hover:bg-indigo-50 transition-colors"
+                                >
+                                    View Attendee List
                                 </button>
-                                <button onClick={deleteEvent} className="p-4 bg-red-500/80 backdrop-blur hover:bg-red-600 text-white rounded-2xl transition-all">
-                                    <HiOutlineTrash className="w-6 h-6" />
-                                </button>
+                            </div>
+
+                            <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 italic">Pro Tip</h3>
+                                <p className="text-sm text-gray-500 italic leading-relaxed">
+                                    Use the attendee list to manage check-ins and send updates directly to registered participants.
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <section className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">About Event</h2>
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                                {eventData.description}
-                            </p>
-                        </section>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <DetailCard icon={<HiOutlineUser />} label="Organizer" value={eventData.organizer} />
-                            <DetailCard icon={<HiOutlineCurrencyRupee />} label="Price" value={`Rs. ${eventData.price}`} />
-                        </div>
-                    </div>
-
-                    {/* Sidebar Stats */}
-                    <div className="space-y-6">
-                        <div className="bg-indigo-600 rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-200">
-                            <div className="flex items-center justify-between mb-6">
-                                <span className="text-indigo-100 font-medium tracking-wide uppercase text-xs">Total Registrations</span>
-                                <HiOutlineTicket className="w-8 h-8 opacity-40" />
-                            </div>
-                            <div className="text-5xl font-black mb-8">{eventData.participants?.length || 0}</div>
-                            <button
-                                onClick={() => router.push(`/event/${eventData.event_id}/registration`)}
-                                className="w-full py-4 bg-white text-indigo-600 font-bold rounded-2xl hover:bg-indigo-50 transition-colors"
-                            >
-                                View Attendee List
-                            </button>
-                        </div>
-
-                        <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 italic">Pro Tip</h3>
-                            <p className="text-sm text-gray-500 italic leading-relaxed">
-                                Use the attendee list to manage check-ins and send updates directly to registered participants.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </main>
         </div>
     );
 }

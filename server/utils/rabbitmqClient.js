@@ -3,20 +3,38 @@ const amqp = require('amqplib');
 let channel;
 let connection;
 
+const RETRY_INTERVAL = 5000; // 5 seconds
+
 async function connectRabbitMQ() {
     try {
-        connection = await amqp.connect('amqp://localhost');
+        console.log('🔄 Attempting to connect to RabbitMQ...');
+        connection = await amqp.connect('amqp://guest:guest@127.0.0.1:5672?heartbeat=60');
         channel = await connection.createChannel();
         console.log('✅ Connected to RabbitMQ');
 
         // Create an exchange for Pub/Sub
         await channel.assertExchange('event_exchange', 'fanout', { durable: true });
 
+        connection.on('error', (err) => {
+            console.error('❌ RabbitMQ connection error:', err);
+            channel = null;
+            connection = null;
+            setTimeout(connectRabbitMQ, RETRY_INTERVAL);
+        });
+
+        connection.on('close', () => {
+            console.warn('⚠️ RabbitMQ connection closed. Reconnecting...');
+            channel = null;
+            connection = null;
+            setTimeout(connectRabbitMQ, RETRY_INTERVAL);
+        });
+
         return channel;
     } catch (error) {
-        console.error('❌ RabbitMQ connection error: RabbitMQ is likely not running. Proceeding without message queue.');
-        // Do NOT retry recursively without a delay or simply suppress. 
-        // For now, return null so the app can continue.
+        console.error('❌ Failed to connect to RabbitMQ:', error.message);
+        // console.error(error); // Uncomment for full stack trace if needed
+        console.log(`⏳ Retrying in ${RETRY_INTERVAL / 1000}s...`);
+        setTimeout(connectRabbitMQ, RETRY_INTERVAL);
         return null;
     }
 }

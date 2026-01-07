@@ -24,7 +24,8 @@ async function setupRabbitMQ() {
     try {
         const channel = await getChannel();
         if (!channel) {
-            console.warn("⚠️ RabbitMQ channel is not available. Skipping subscriber setup.");
+            console.warn("⚠️ RabbitMQ channel not available yet. Retrying subscriber setup in 5s...");
+            setTimeout(setupRabbitMQ, 5000);
             return;
         }
 
@@ -64,3 +65,5 @@ server.listen(PORT, () => {
 
 // Call the setup function
 setupRabbitMQ();
+
+module.exports = { setupRabbitMQ };

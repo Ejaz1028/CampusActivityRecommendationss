@@ -48,12 +48,6 @@ const signIn = async (req, res) => {
                 otp: OTP,
             };
 
-            sendSMS(Email, otp.otp);
-
-            console.log("Generated otp for signin: ", otp);
-            //encrypting the otp and then saving to Otp_table
-            const salt = await bcrypt.genSalt(10);
-            otp.otp = await bcrypt.hash(otp.otp, salt);
 
             const newUserLogin = new OtpAuth({
                 email: otp.email,
